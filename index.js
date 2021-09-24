@@ -29,6 +29,7 @@ let data = [
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('build'));
 
 // Format morgan token to return POST req
 morgan.token('reqParams', (req) => JSON.stringify(req.body));
