@@ -42,11 +42,6 @@ const generateId = () => {
   return maxId + 1;
 };
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('<h1>Works, Kell!</h1>');
-});
-
 // Info route
 app.get('/info', (req, res) => {
   res.send(`<p>Phonebook has info for ${data.length} people</p>
