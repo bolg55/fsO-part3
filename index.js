@@ -1,6 +1,8 @@
 const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 let data = [
   {
@@ -25,10 +27,16 @@ let data = [
   },
 ];
 // Middleware
+app.use(cors());
 app.use(express.json());
 
-// Utility functions
+// Format morgan token to return POST req
+morgan.token('reqParams', (req) => JSON.stringify(req.body));
+const morganFormat =
+  ':method :url :status :res[content-length] - :response-time ms :reqParams';
+app.use(morgan(morganFormat));
 
+// Utility functions
 const generateId = () => {
   const maxId = data.length > 0 ? Math.max(...data.map((n) => n.id)) : 0;
   return maxId + 1;
@@ -75,11 +83,9 @@ app.post('/api/persons', (req, res) => {
   const body = req.body;
   // Check if name or number are empty. If true, send error
   if (!body.name || !body.number) {
-    return res
-      .status(400)
-      .json({
-        error: `${!body.name ? 'name' : 'number'} is missing and required.`,
-      });
+    return res.status(400).json({
+      error: `${!body.name ? 'name' : 'number'} is missing and required.`,
+    });
   }
   // Check if name already exists in phonebook. If exists >> send error
   if (data.find((n) => n.name === body.name)) {
