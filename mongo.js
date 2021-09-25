@@ -30,6 +30,7 @@ const person = new Person({
   date: new Date(),
 })
 
+// If name or number args empty, return entire phonebook, else, create new Person
 if (!name || !number) {
   // Retrieve all Person Objects (people, number) from database
   Person.find({}).then((result) => {
