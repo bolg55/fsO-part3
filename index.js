@@ -1,31 +1,11 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 const app = express()
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
-let data = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-]
 // Middleware
 app.use(cors())
 app.use(express.json())
@@ -37,12 +17,6 @@ const morganFormat =
   ':method :url :status :res[content-length] - :response-time ms :reqParams'
 app.use(morgan(morganFormat))
 
-// Utility functions
-const generateId = () => {
-  const maxId = data.length > 0 ? Math.max(...data.map((n) => n.id)) : 0
-  return maxId + 1
-}
-
 // Root route
 app.get('/', (req, res) => {
   res.send('<h1>working!</h1>')
@@ -50,25 +24,22 @@ app.get('/', (req, res) => {
 
 // Info route
 app.get('/info', (req, res) => {
-  res.send(`<p>Phonebook has info for ${data.length} people</p>
+  res.send(`<p>Phonebook has info for ${people.length} people</p>
     <p>${new Date()}</p>`)
 })
 
 // GET ALL data from API as JSON object
 app.get('/api/persons', (req, res) => {
-  res.json(data)
+  Person.find({}).then((people) => {
+    res.json(people)
+  })
 })
 
 // GET ONE data by ID from API as JSON object. Return 404 if doesn't exist
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = data.find((person) => person.id === id)
-
-  if (person) {
+  Person.findById(req.params.id).then((person) => {
     res.json(person)
-  } else {
-    res.status(404).end()
-  }
+  })
 })
 
 // DELETE by ID from API.
@@ -96,15 +67,15 @@ app.post('/api/persons', (req, res) => {
   }
   // If name doesn't exist && name / number not empty
   // create new person Object and add to copy of existing data array.
-  const person = {
+  const person = new Person({
     id: generateId(),
     name: body.name,
     number: body.number,
-  }
+  })
 
-  data = data.concat(person)
-
-  res.json(person)
+  person.save().then((savedPerson) => {
+    res.json(savedPerson)
+  })
 })
 
 // Express server
